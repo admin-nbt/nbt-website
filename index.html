@@ -15,7 +15,7 @@
 
       /* Herz / Overlay (anpassbar) */
       --heart-stroke: rgba(255,255,255,0.95);
-      --heart-fill: rgba(255,255,255,0.08);
+      --heart-fill: rgba(255,255,255,0.02); /* fast transparent */
       --heart-text: rgba(255,255,255,0.95);
     }
 
@@ -31,7 +31,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden; /* optional: verhindert Scrollbalken durch Overlay */
+      overflow: hidden;
     }
 
     .badge {
@@ -48,15 +48,21 @@
 
     /* ---------- Herz oben rechts ---------- */
     .love-badge{
-      position: fixed;       /* bleibt oben rechts, auch wenn gescrollt würde */
-      top: 24px;
-      right: 24px;
-      width: 200px;          /* Größe des Herzens */
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      width: 220px;
       height: auto;
       z-index: 9999;
-      pointer-events: none;  /* blockiert keine Klicks */
-      opacity: 0.95;
-      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18)); /* dezent wie im Screenshot */
+
+      /* Wenn du NICHT willst, dass man mit der Maus "drüber hovern" kann:
+         pointer-events: none;   */
+      pointer-events: auto;
+
+      opacity: 0.96;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18));
+      transform: rotate(1.2deg); /* minimal schief = natürlicher */
+      transform-origin: top right;
     }
 
     .love-svg{
@@ -65,26 +71,56 @@
       display: block;
     }
 
+    /* Handgezeichnete Linienoptik */
     .love-heart{
       fill: var(--heart-fill);
       stroke: var(--heart-stroke);
       stroke-width: 6;
       stroke-linecap: round;
       stroke-linejoin: round;
+
+      /* "Stift"-Optik: leicht gestrichelt/variierend */
+      stroke-dasharray: 1 0.6;
+      stroke-dashoffset: 0.2;
+    }
+
+    /* Zweite Linie: minimal versetzt (wie nochmal nachgezogen) */
+    .love-heart.shadowline{
+      stroke-width: 4.8;
+      opacity: 0.65;
+      transform: translate(1.2px, -0.6px);
     }
 
     .love-text{
       fill: var(--heart-text);
       font-size: 44px;
       font-weight: 700;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+      /* "Handschrift"-Fallback ohne externe Fonts:
+         (Wenn du magst, kann ich optional Google Font einbauen.) */
+      font-family: "Comic Sans MS", "Bradley Hand", "Segoe Print", "Marker Felt",
+                   system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
       letter-spacing: 0.02em;
     }
 
-    /* Mobile / kleine Displays: etwas kleiner und dichter an den Rand */
+    /* Text leicht schief = natürlicher */
+    .love-text-rotate{
+      transform: rotate(-4deg);
+      transform-origin: 100px 92px; /* SVG-Koordinaten */
+    }
+
+    /* Optional: Hover-Effekt (siehe Erklärung) */
+    .love-badge:hover{
+      transform: rotate(1.2deg) scale(1.03);
+      opacity: 1;
+      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.22));
+    }
+
+    /* Mobile */
     @media (max-width: 600px){
       .love-badge{
-        width: 150px;
+        width: 160px;
         top: 14px;
         right: 14px;
       }
@@ -98,20 +134,35 @@
 <body>
   <div class="badge">nbt.de</div>
 
-  <!-- Herz-Overlay oben rechts -->
+  <!-- Herz-Overlay oben rechts (handgezeichnete Kontur) -->
   <div class="love-badge" aria-label="K + R im Herzen">
     <svg viewBox="0 0 200 180" class="love-svg" role="img" aria-hidden="true">
-      <!-- Herzform -->
+
+      <!-- 1) Hauptlinie (leicht unregelmäßiger Herzpfad) -->
       <path
-        d="M100 165
-           C 20 110, 10 65, 40 40
-           C 65 15, 90 25, 100 45
-           C 110 25, 135 15, 160 40
-           C 190 65, 180 110, 100 165 Z"
         class="love-heart"
+        d="M100 164
+           C 28 112, 12 70, 40 42
+           C 60 22, 86 26, 98 48
+           C 112 26, 138 20, 160 42
+           C 190 70, 172 114, 100 164
+           Z"
       />
+
+      <!-- 2) Zweite, leicht versetzte Linie (wie nachgezogen) -->
+      <path
+        class="love-heart shadowline"
+        d="M100 164
+           C 28 112, 12 70, 40 42
+           C 60 22, 86 26, 98 48
+           C 112 26, 138 20, 160 42
+           C 190 70, 172 114, 100 164
+           Z"
+      />
+
       <!-- Text im Herzen -->
-      <text x="100" y="92" text-anchor="middle" dominant-baseline="middle" class="love-text">
+      <text x="100" y="92" text-anchor="middle" dominant-baseline="middle"
+            class="love-text love-text-rotate">
         K + R
       </text>
     </svg>
