@@ -45,21 +45,28 @@
       -webkit-backdrop-filter: blur(4px);
     }
 
-    /* ---------- Herz oben rechts ---------- */
+    /* ---------- Herz oben rechts (touchfähig) ---------- */
     .love-badge{
       position: fixed;
       top: 22px;
       right: 22px;
-      width: 210px;
+      width: 210px;                 /* Größe wie vorher */
       height: auto;
       z-index: 9999;
 
-      /* Touch erlauben */
-      pointer-events: auto;
+      /* Button optisch neutral */
+      background: transparent;
+      border: 0;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
 
       opacity: 0.96;
       filter: drop-shadow(0 6px 18px rgba(0,0,0,0.14));
-      transform: rotate(0.6deg);
+
+      /* Basis-Transform (wichtig: wird auch in Animation verwendet) */
+      --base-rot: 0.6deg;
+      transform: rotate(var(--base-rot));
       transform-origin: top right;
 
       /* Touch/UI */
@@ -67,10 +74,14 @@
       touch-action: manipulation;
       user-select: none;
 
-      /* weiche Übergänge */
-      transition: transform 160ms ease, filter 160ms ease, opacity 160ms ease;
-      text-decoration: none; /* weil <a> */
-      display: block;
+      /* Kein Fokus-Rahmen auf Touch, aber Accessibility bleibt möglich */
+      outline: none;
+    }
+
+    .love-badge:focus-visible{
+      outline: 2px solid rgba(255,255,255,0.40);
+      outline-offset: 6px;
+      border-radius: 12px;
     }
 
     .love-svg{
@@ -79,7 +90,7 @@
       display: block;
     }
 
-    /* Eine saubere Kontur – dünn & natürlich */
+    /* Kontur – dünn & natürlich */
     .love-heart{
       fill: none;
       stroke: var(--heart-stroke);
@@ -87,12 +98,12 @@
       stroke-linecap: round;
       stroke-linejoin: round;
 
-      /* sehr dezente „Stift“-Note */
+      /* dezente Stift-Note, bleibt sauber */
       stroke-dasharray: 1 0.25;
       stroke-dashoffset: 0.12;
     }
 
-    /* Text: schlichter, enger, höher */
+    /* Text – schlicht, enger, weiter innen */
     .love-text{
       fill: var(--heart-text);
       font-size: 34px;
@@ -101,21 +112,20 @@
       letter-spacing: -0.08em;
     }
 
-    /* Während gedrückt: mini Feedback (zusätzlich zum Puls) */
+    /* Mini-Feedback während gedrückt */
     .love-badge:active{
-      transform: rotate(0.6deg) scale(1.03);
-      opacity: 1;
       filter: drop-shadow(0 10px 24px rgba(0,0,0,0.20));
+      transform: rotate(var(--base-rot)) scale(1.03);
+      opacity: 1;
     }
 
-    /* ---------- Puls-Animation ---------- */
+    /* ---------- Puls-Animation (einmaliges „Pumpen“) ---------- */
     @keyframes lovePulse {
-      0%   { transform: rotate(0.6deg) scale(1);    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.14)); opacity: 0.96; }
-      35%  { transform: rotate(0.6deg) scale(1.08); filter: drop-shadow(0 12px 28px rgba(0,0,0,0.24)); opacity: 1; }
-      100% { transform: rotate(0.6deg) scale(1);    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.14)); opacity: 0.96; }
+      0%   { transform: rotate(var(--base-rot)) scale(1); }
+      35%  { transform: rotate(var(--base-rot)) scale(1.08); }
+      100% { transform: rotate(var(--base-rot)) scale(1); }
     }
 
-    /* Klasse wird per JS kurz gesetzt */
     .love-badge.pulse{
       animation: lovePulse 420ms ease-out;
     }
@@ -132,12 +142,11 @@
       }
     }
 
-    /* Optional: weniger Animation für Nutzer, die das so eingestellt haben */
+    /* Respektiert Systemeinstellung „weniger Bewegung“ */
     @media (prefers-reduced-motion: reduce){
       .love-badge,
       .love-badge.pulse{
         animation: none !important;
-        transition: none !important;
       }
     }
   </style>
@@ -146,8 +155,8 @@
 <body>
   <div class="badge">nbt.de</div>
 
-  <!-- Herz-Overlay oben rechts (touchfähig) -->
-  #
+  <!-- Herz-Overlay oben rechts -->
+  <button type="button" class="love-badge" id="loveBadge" aria-label="Herz K plus R">
     <svg viewBox="0 0 200 180" class="love-svg" role="img" aria-hidden="true">
       <path
         class="love-heart"
@@ -161,37 +170,29 @@
         K + R
       </text>
     </svg>
-  </a>
+  </button>
 
   <script>
     // Puls beim Tippen/Klicken: Klasse kurz setzen, damit die Animation jedes Mal neu startet
     (function () {
-      const badge = document.querySelector('.love-badge');
+      const badge = document.getElementById('loveBadge');
       if (!badge) return;
 
-      const triggerPulse = (event) => {
-        // verhindert, dass der Link nach oben springt (href="#")
-        event.preventDefault();
-
-        // Animation zuverlässig neu starten
+      const pulse = () => {
         badge.classList.remove('pulse');
-        // Reflow erzwingen, damit das Entfernen wirksam wird
+        // Reflow erzwingen, damit die Animation zuverlässig neu startet
         void badge.offsetWidth;
         badge.classList.add('pulse');
       };
 
-      // Touch + Maus
-      badge.addEventListener('click', triggerPulse, { passive: false });
+      // click funktioniert auf Touch & Desktop zuverlässig
+      badge.addEventListener('click', pulse);
 
-      // Optional: auch bei Tastatur (Enter/Space) pulsen
-      badge.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          badge.classList.remove('pulse');
-          void badge.offsetWidth;
-          badge.classList.add('pulse');
-        }
-      });
+      // Optional: verhindert „Doppeltap-Zoom“-Artefakte auf manchen Browsern (zusätzlich zu touch-action)
+      badge.addEventListener('touchend', function (e) {
+        e.preventDefault();
+        pulse();
+      }, { passive: false });
     })();
   </script>
 </body>
