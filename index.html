@@ -12,6 +12,11 @@
       /* Blaugrau (anpassbar) */
       --bg: #5f7d8c;
       --fg: #ffffff;
+
+      /* Herz / Overlay (anpassbar) */
+      --heart-stroke: rgba(255,255,255,0.95);
+      --heart-fill: rgba(255,255,255,0.08);
+      --heart-text: rgba(255,255,255,0.95);
     }
 
     html, body {
@@ -26,6 +31,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      overflow: hidden; /* optional: verhindert Scrollbalken durch Overlay */
     }
 
     .badge {
@@ -39,10 +45,76 @@
       backdrop-filter: blur(4px);
       -webkit-backdrop-filter: blur(4px);
     }
+
+    /* ---------- Herz oben rechts ---------- */
+    .love-badge{
+      position: fixed;       /* bleibt oben rechts, auch wenn gescrollt würde */
+      top: 24px;
+      right: 24px;
+      width: 200px;          /* Größe des Herzens */
+      height: auto;
+      z-index: 9999;
+      pointer-events: none;  /* blockiert keine Klicks */
+      opacity: 0.95;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.18)); /* dezent wie im Screenshot */
+    }
+
+    .love-svg{
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .love-heart{
+      fill: var(--heart-fill);
+      stroke: var(--heart-stroke);
+      stroke-width: 6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .love-text{
+      fill: var(--heart-text);
+      font-size: 44px;
+      font-weight: 700;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      letter-spacing: 0.02em;
+    }
+
+    /* Mobile / kleine Displays: etwas kleiner und dichter an den Rand */
+    @media (max-width: 600px){
+      .love-badge{
+        width: 150px;
+        top: 14px;
+        right: 14px;
+      }
+      .love-text{
+        font-size: 36px;
+      }
+    }
   </style>
 </head>
 
 <body>
   <div class="badge">nbt.de</div>
+
+  <!-- Herz-Overlay oben rechts -->
+  <div class="love-badge" aria-label="K + R im Herzen">
+    <svg viewBox="0 0 200 180" class="love-svg" role="img" aria-hidden="true">
+      <!-- Herzform -->
+      <path
+        d="M100 165
+           C 20 110, 10 65, 40 40
+           C 65 15, 90 25, 100 45
+           C 110 25, 135 15, 160 40
+           C 190 65, 180 110, 100 165 Z"
+        class="love-heart"
+      />
+      <!-- Text im Herzen -->
+      <text x="100" y="92" text-anchor="middle" dominant-baseline="middle" class="love-text">
+        K + R
+      </text>
+    </svg>
+  </div>
 </body>
 </html>
