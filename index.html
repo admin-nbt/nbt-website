@@ -59,7 +59,7 @@
 
       opacity: 0.96;
       filter: drop-shadow(0 6px 18px rgba(0,0,0,0.14));
-      transform: rotate(0.8deg); /* minimal schief = natürlicher */
+      transform: rotate(0.6deg); /* minimal = natürlich, aber sauber */
       transform-origin: top right;
     }
 
@@ -73,32 +73,26 @@
     .love-heart{
       fill: none;
       stroke: var(--heart-stroke);
-      stroke-width: 3.5;          /* dünner */
+      stroke-width: 3.5;
       stroke-linecap: round;
       stroke-linejoin: round;
 
-      /* sehr dezente „Stift“-Unregelmäßigkeit, bleibt aber sauber */
+      /* sehr dezente „Stift“-Note */
       stroke-dasharray: 1 0.25;
       stroke-dashoffset: 0.12;
     }
 
-    /* Text: etwas kleiner + weiter innen */
+    /* Text: schlichter, enger, höher */
     .love-text{
       fill: var(--heart-text);
-      font-size: 36px;
-      font-weight: 700;
+      font-size: 34px;
+      font-weight: 600;
 
-      /* Handschrift-Fallback ohne externe Fonts */
-      font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", "Marker Felt",
-                   system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      /* schlichte, klare Schrift */
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 
-      letter-spacing: 0.02em;
-    }
-
-    /* Text minimal schief & etwas nach innen verschoben */
-    .love-text-rotate{
-      transform: rotate(-4deg);
-      transform-origin: 96px 100px;
+      /* enger setzen => weniger Randnähe links/rechts */
+      letter-spacing: -0.08em;
     }
 
     @media (max-width: 600px){
@@ -108,7 +102,7 @@
         right: 14px;
       }
       .love-text{
-        font-size: 30px;
+        font-size: 28px;
       }
     }
   </style>
@@ -120,7 +114,8 @@
   <!-- Herz-Overlay oben rechts -->
   <div class="love-badge" aria-label="K + R im Herzen">
     <svg viewBox="0 0 200 180" class="love-svg" role="img" aria-hidden="true">
-      <!-- Herzform: bewusst nicht super „perfekt“, aber sauber -->
+
+      <!-- Herzform -->
       <path
         class="love-heart"
         d="M100 164
@@ -130,9 +125,8 @@
            C 190 70, 172 114, 100 164 Z"
       />
 
-      <!-- Text: leicht nach links/unten für mehr Abstand zu den Kanten -->
-      <text x="96" y="100" text-anchor="middle" dominant-baseline="middle"
-            class="love-text love-text-rotate">
+      <!-- Text: nach oben, leicht nach links für mehr Innenabstand -->
+      <text x="98" y="90" text-anchor="middle" dominant-baseline="middle" class="love-text">
         K + R
       </text>
     </svg>
