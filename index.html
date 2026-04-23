@@ -48,9 +48,9 @@
     /* ---------- Sonne oben rechts (touchfähig) ---------- */
     .sun-badge{
       position: fixed;
-      top: 22px;
-      right: 22px;
-      width: 180px;
+      top: 20px;
+      right: 20px;
+      width: 135px;   /* insgesamt kleiner */
       height: auto;
       z-index: 9999;
 
@@ -73,7 +73,6 @@
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       user-select: none;
-
       outline: none;
     }
 
@@ -89,27 +88,27 @@
       display: block;
     }
 
-    /* Sonne – Kreis + Strahlen (sauber, handgezeichnete Note) */
+    /* Symmetrische Strahlen, aber "gezeichnet" durch leichte Segmentierung */
     .sun-core{
       fill: var(--sun-fill);
       stroke: var(--sun-stroke);
-      stroke-width: 3.5;
+      stroke-width: 3.0;
       stroke-linecap: round;
       stroke-linejoin: round;
 
       /* dezente Stift-Note */
-      stroke-dasharray: 1 0.25;
-      stroke-dashoffset: 0.12;
+      stroke-dasharray: 1 0.22;
+      stroke-dashoffset: 0.10;
     }
 
-    .sun-ray{
+    .sun-rays{
       stroke: var(--sun-stroke);
-      stroke-width: 3.5;
+      stroke-width: 3.0;
       stroke-linecap: round;
 
       /* dezente Stift-Note */
-      stroke-dasharray: 1 0.25;
-      stroke-dashoffset: 0.12;
+      stroke-dasharray: 1 0.22;
+      stroke-dashoffset: 0.10;
     }
 
     /* Mini-Feedback während gedrückt */
@@ -133,13 +132,12 @@
     /* Mobile */
     @media (max-width: 600px){
       .sun-badge{
-        width: 135px;
+        width: 110px;
         top: 14px;
         right: 14px;
       }
     }
 
-    /* Respektiert Systemeinstellung „weniger Bewegung“ */
     @media (prefers-reduced-motion: reduce){
       .sun-badge,
       .sun-badge.pulse{
@@ -152,41 +150,43 @@
 <body>
   <div class="badge">nbt.de</div>
 
-  <!-- Sonne-Overlay oben rechts -->
+  <!-- Sonne-Overlay oben rechts (symmetrische Strahlen, kleiner Kern, längere Strahlen) -->
   <button type="button" class="sun-badge" id="sunBadge" aria-label="Sonne">
     <svg class="sun-svg" viewBox="0 0 200 200" role="img" aria-hidden="true">
-      <!-- Strahlen -->
-      <line class="sun-ray" x1="100" y1="18"  x2="100" y2="40" />
-      <line class="sun-ray" x1="100" y1="160" x2="100" y2="182" />
-      <line class="sun-ray" x1="18"  y1="100" x2="40"  y2="100" />
-      <line class="sun-ray" x1="160" y1="100" x2="182" y2="100" />
+      <!-- Strahlen als ein Pfad: exakt symmetrisch (12 Strahlen) -->
+      <!-- Zentrum (100,100), Kreisradius 32, Strahlen: innen 50, außen 86 -->
+      <path class="sun-rays" d="
+        M100 14 L100 50
+        M143 22 L125 52
+        M178 57 L148 75
+        M186 100 L150 100
+        M178 143 L148 125
+        M143 178 L125 148
+        M100 186 L100 150
+        M57 178 L75 148
+        M22 143 L52 125
+        M14 100 L50 100
+        M22 57 L52 75
+        M57 22 L75 52
+      " />
 
-      <line class="sun-ray" x1="38"  y1="38"  x2="54"  y2="54" />
-      <line class="sun-ray" x1="146" y1="146" x2="162" y2="162" />
-      <line class="sun-ray" x1="38"  y1="162" x2="54"  y2="146" />
-      <line class="sun-ray" x1="146" y1="54"  x2="162" y2="38" />
-
-      <!-- Kreis der Sonne -->
-      <circle class="sun-core" cx="100" cy="100" r="48" />
+      <!-- Kreis der Sonne (kleiner) -->
+      <circle class="sun-core" cx="100" cy="100" r="32" />
     </svg>
   </button>
 
   <script>
-    // Puls beim Tippen/Klicken: Klasse kurz setzen, damit die Animation jedes Mal neu startet
     (function () {
       const badge = document.getElementById('sunBadge');
       if (!badge) return;
 
       const pulse = () => {
         badge.classList.remove('pulse');
-        void badge.offsetWidth; // Reflow, damit Animation neu startet
+        void badge.offsetWidth; // Reflow
         badge.classList.add('pulse');
       };
 
-      // click funktioniert auf Touch & Desktop zuverlässig
       badge.addEventListener('click', pulse);
-
-      // iOS Safari: touchend als Backup, verhindert manchmal das verzögerte Click-Feeling
       badge.addEventListener('touchend', function (e) {
         e.preventDefault();
         pulse();
