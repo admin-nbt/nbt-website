@@ -13,9 +13,9 @@
       --bg: #5f7d8c;
       --fg: #ffffff;
 
-      /* Herz */
-      --heart-stroke: rgba(255,255,255,0.95);
-      --heart-text: rgba(255,255,255,0.95);
+      /* Sonne */
+      --sun-stroke: rgba(255,255,255,0.95);
+      --sun-fill: rgba(255,255,255,0.00);
     }
 
     html, body {
@@ -45,12 +45,12 @@
       -webkit-backdrop-filter: blur(4px);
     }
 
-    /* ---------- Herz oben rechts (touchfähig) ---------- */
-    .love-badge{
+    /* ---------- Sonne oben rechts (touchfähig) ---------- */
+    .sun-badge{
       position: fixed;
       top: 22px;
       right: 22px;
-      width: 210px;                 /* Größe wie vorher */
+      width: 180px;
       height: auto;
       z-index: 9999;
 
@@ -65,7 +65,7 @@
       filter: drop-shadow(0 6px 18px rgba(0,0,0,0.14));
 
       /* Basis-Transform (wichtig: wird auch in Animation verwendet) */
-      --base-rot: 0.6deg;
+      --base-rot: 0.4deg;
       transform: rotate(var(--base-rot));
       transform-origin: top right;
 
@@ -74,78 +74,75 @@
       touch-action: manipulation;
       user-select: none;
 
-      /* Kein Fokus-Rahmen auf Touch, aber Accessibility bleibt möglich */
       outline: none;
     }
 
-    .love-badge:focus-visible{
+    .sun-badge:focus-visible{
       outline: 2px solid rgba(255,255,255,0.40);
       outline-offset: 6px;
       border-radius: 12px;
     }
 
-    .love-svg{
+    .sun-svg{
       width: 100%;
       height: auto;
       display: block;
     }
 
-    /* Kontur – dünn & natürlich */
-    .love-heart{
-      fill: none;
-      stroke: var(--heart-stroke);
+    /* Sonne – Kreis + Strahlen (sauber, handgezeichnete Note) */
+    .sun-core{
+      fill: var(--sun-fill);
+      stroke: var(--sun-stroke);
       stroke-width: 3.5;
       stroke-linecap: round;
       stroke-linejoin: round;
 
-      /* dezente Stift-Note, bleibt sauber */
+      /* dezente Stift-Note */
       stroke-dasharray: 1 0.25;
       stroke-dashoffset: 0.12;
     }
 
-    /* Text – schlicht, enger, weiter innen */
-    .love-text{
-      fill: var(--heart-text);
-      font-size: 34px;
-      font-weight: 600;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-      letter-spacing: -0.08em;
+    .sun-ray{
+      stroke: var(--sun-stroke);
+      stroke-width: 3.5;
+      stroke-linecap: round;
+
+      /* dezente Stift-Note */
+      stroke-dasharray: 1 0.25;
+      stroke-dashoffset: 0.12;
     }
 
     /* Mini-Feedback während gedrückt */
-    .love-badge:active{
+    .sun-badge:active{
       filter: drop-shadow(0 10px 24px rgba(0,0,0,0.20));
       transform: rotate(var(--base-rot)) scale(1.03);
       opacity: 1;
     }
 
     /* ---------- Puls-Animation (einmaliges „Pumpen“) ---------- */
-    @keyframes lovePulse {
+    @keyframes sunPulse {
       0%   { transform: rotate(var(--base-rot)) scale(1); }
       35%  { transform: rotate(var(--base-rot)) scale(1.08); }
       100% { transform: rotate(var(--base-rot)) scale(1); }
     }
 
-    .love-badge.pulse{
-      animation: lovePulse 420ms ease-out;
+    .sun-badge.pulse{
+      animation: sunPulse 420ms ease-out;
     }
 
     /* Mobile */
     @media (max-width: 600px){
-      .love-badge{
-        width: 155px;
+      .sun-badge{
+        width: 135px;
         top: 14px;
         right: 14px;
-      }
-      .love-text{
-        font-size: 28px;
       }
     }
 
     /* Respektiert Systemeinstellung „weniger Bewegung“ */
     @media (prefers-reduced-motion: reduce){
-      .love-badge,
-      .love-badge.pulse{
+      .sun-badge,
+      .sun-badge.pulse{
         animation: none !important;
       }
     }
@@ -155,40 +152,41 @@
 <body>
   <div class="badge">nbt.de</div>
 
-  <!-- Herz-Overlay oben rechts -->
-  <button type="button" class="love-badge" id="loveBadge" aria-label="Herz K plus R">
-    <svg viewBox="0 0 200 180" class="love-svg" role="img" aria-hidden="true">
-      <path
-        class="love-heart"
-        d="M100 164
-           C 28 112, 12 70, 40 42
-           C 60 22, 86 26, 98 48
-           C 112 26, 138 20, 160 42
-           C 190 70, 172 114, 100 164 Z"
-      />
-      <text x="98" y="90" text-anchor="middle" dominant-baseline="middle" class="love-text">
-        K + R
-      </text>
+  <!-- Sonne-Overlay oben rechts -->
+  <button type="button" class="sun-badge" id="sunBadge" aria-label="Sonne">
+    <svg class="sun-svg" viewBox="0 0 200 200" role="img" aria-hidden="true">
+      <!-- Strahlen -->
+      <line class="sun-ray" x1="100" y1="18"  x2="100" y2="40" />
+      <line class="sun-ray" x1="100" y1="160" x2="100" y2="182" />
+      <line class="sun-ray" x1="18"  y1="100" x2="40"  y2="100" />
+      <line class="sun-ray" x1="160" y1="100" x2="182" y2="100" />
+
+      <line class="sun-ray" x1="38"  y1="38"  x2="54"  y2="54" />
+      <line class="sun-ray" x1="146" y1="146" x2="162" y2="162" />
+      <line class="sun-ray" x1="38"  y1="162" x2="54"  y2="146" />
+      <line class="sun-ray" x1="146" y1="54"  x2="162" y2="38" />
+
+      <!-- Kreis der Sonne -->
+      <circle class="sun-core" cx="100" cy="100" r="48" />
     </svg>
   </button>
 
   <script>
     // Puls beim Tippen/Klicken: Klasse kurz setzen, damit die Animation jedes Mal neu startet
     (function () {
-      const badge = document.getElementById('loveBadge');
+      const badge = document.getElementById('sunBadge');
       if (!badge) return;
 
       const pulse = () => {
         badge.classList.remove('pulse');
-        // Reflow erzwingen, damit die Animation zuverlässig neu startet
-        void badge.offsetWidth;
+        void badge.offsetWidth; // Reflow, damit Animation neu startet
         badge.classList.add('pulse');
       };
 
       // click funktioniert auf Touch & Desktop zuverlässig
       badge.addEventListener('click', pulse);
 
-      // Optional: verhindert „Doppeltap-Zoom“-Artefakte auf manchen Browsern (zusätzlich zu touch-action)
+      // iOS Safari: touchend als Backup, verhindert manchmal das verzögerte Click-Feeling
       badge.addEventListener('touchend', function (e) {
         e.preventDefault();
         pulse();
