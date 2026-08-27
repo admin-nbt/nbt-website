@@ -9,7 +9,7 @@
 
   <style>
     :root {
-      /* Standardfarbe, bis die Wetterdaten geladen wurden */
+      /* Standardfarbe, bis die Tageszeit ermittelt wurde */
       --bg: #6f8896;
       --fg: #ffffff;
 
@@ -28,6 +28,7 @@
     body {
       background-color: var(--bg);
       color: var(--fg);
+
       font-family:
         system-ui,
         -apple-system,
@@ -42,7 +43,7 @@
 
       overflow: hidden;
 
-      /* Weicher Übergang bei einem Wechsel der Tageszeit */
+      /* Weicher Übergang beim Wechsel der Tageszeit */
       transition: background-color 1.2s ease;
     }
 
@@ -72,6 +73,7 @@
       font-weight: 500;
       letter-spacing: 0.02em;
       line-height: 1;
+
       user-select: none;
       -webkit-user-select: none;
     }
@@ -114,14 +116,8 @@
     }
 
     /*
-     * Textbereich der Wetteranzeige
+     * Temperatur und Wetterzustand
      */
-
-    .weather-content {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
 
     .weather-main {
       display: flex;
@@ -134,16 +130,6 @@
 
     .weather-temperature {
       font-weight: 600;
-    }
-
-    /*
-     * Ort bewusst kleiner und transparenter
-     */
-
-    .weather-location {
-      color: var(--weather-secondary);
-      font-size: 0.75em;
-      font-weight: 400;
     }
 
     /*
@@ -173,15 +159,6 @@
 
         font-size: 24px;
       }
-
-      /*
-       * Auf kleinen Displays wird die Ortsangabe ausgeblendet.
-       * Temperatur und Wetterzustand bleiben sichtbar.
-       */
-
-      .weather-location {
-        display: none;
-      }
     }
 
     /*
@@ -197,13 +174,13 @@
 </head>
 
 <body>
-  <!-- Wetteranzeige für 01809 Dohna -->
+  <!-- Wetteranzeige ohne sichtbare Ortsangabe -->
   <div
     class="weather"
     id="weather"
     role="status"
     aria-live="polite"
-    aria-label="Aktuelles Wetter in Dohna"
+    aria-label="Aktuelles Wetter"
   >
     <div
       class="weather-icon"
@@ -213,21 +190,15 @@
       ·
     </div>
 
-    <div class="weather-content">
-      <div class="weather-main">
-        <span
-          class="weather-temperature"
-          id="weatherTemperature"
-        >
-          Wetter wird geladen
-        </span>
+    <div class="weather-main">
+      <span
+        class="weather-temperature"
+        id="weatherTemperature"
+      >
+        Wetter wird geladen
+      </span>
 
-        <span id="weatherDescription"></span>
-      </div>
-
-      <div class="weather-location">
-        01809 Dohna
-      </div>
+      <span id="weatherDescription"></span>
     </div>
   </div>
 
@@ -237,9 +208,10 @@
   <script>
     (function () {
       /*
-       * Fester Standort: 01809 Dohna
+       * Fester Standort für die Wetterabfrage.
        *
-       * Der Browser fragt nicht nach dem Standort.
+       * Postleitzahl und Ort werden auf der Webseite
+       * an keiner Stelle sichtbar ausgegeben.
        */
 
       const latitude = 50.956;
@@ -260,9 +232,9 @@
       /*
        * Hintergrund anhand der Ortszeit anpassen.
        *
-       * Tag:     07:00 bis 17:59 Uhr
-       * Abend:   18:00 bis 21:59 Uhr
-       * Nacht:   22:00 bis 06:59 Uhr
+       * Tag:    07:00 bis 17:59 Uhr
+       * Abend:  18:00 bis 21:59 Uhr
+       * Nacht:  22:00 bis 06:59 Uhr
        */
 
       function updateBackgroundByTime() {
@@ -290,8 +262,8 @@
       }
 
       /*
-       * Wettercodes in deutsche Beschreibungen und
-       * passende Symbole übersetzen.
+       * WMO-Wettercodes in deutsche Beschreibungen
+       * und passende Symbole übersetzen.
        */
 
       function getWeatherInformation(code, isDay) {
@@ -480,9 +452,14 @@
             "weather-error"
           );
 
+          /*
+           * Auch die barrierefreie Beschreibung nennt
+           * bewusst weder Postleitzahl noch Ort.
+           */
+
           weatherElement.setAttribute(
             "aria-label",
-            "Aktuelles Wetter in Dohna: " +
+            "Aktuelles Wetter: " +
               temperature +
               " Grad Celsius, " +
               weather.description
@@ -519,9 +496,7 @@
       loadWeather();
 
       /*
-       * Hintergrund regelmäßig prüfen.
-       * Dadurch wechselt die Farbe automatisch,
-       * wenn die Seite längere Zeit geöffnet bleibt.
+       * Hintergrund jede Minute überprüfen.
        */
 
       window.setInterval(
