@@ -9,15 +9,18 @@
 
   <style>
     :root {
-      /* Farben */
-      --bg: #5f7d8c;
+      /* Standardfarbe, bis die Wetterdaten geladen wurden */
+      --bg: #6f8896;
       --fg: #ffffff;
-      --weather-fg: rgba(255, 255, 255, 0.92);
-      --weather-secondary: rgba(255, 255, 255, 0.72);
+
+      /* Wetteranzeige bewusst etwas dezenter */
+      --weather-fg: rgba(255, 255, 255, 0.78);
+      --weather-secondary: rgba(255, 255, 255, 0.55);
     }
 
     html,
     body {
+      width: 100%;
       height: 100%;
       margin: 0;
     }
@@ -25,24 +28,58 @@
     body {
       background-color: var(--bg);
       color: var(--fg);
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+      font-family:
+        system-ui,
+        -apple-system,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
 
       display: flex;
       align-items: center;
       justify-content: center;
 
       overflow: hidden;
+
+      /* Weicher Übergang bei einem Wechsel der Tageszeit */
+      transition: background-color 1.2s ease;
     }
 
-    /* Mittiger Schriftzug */
+    /*
+     * Hintergrundfarben nach Tageszeit
+     */
+
+    body.day {
+      background-color: #6f8896;
+    }
+
+    body.evening {
+      background-color: #556b78;
+    }
+
+    body.night {
+      background-color: #3f5563;
+    }
+
+    /*
+     * Mittiger Schriftzug
+     */
+
     .logo {
-      font-size: clamp(32px, 6vw, 72px);
-      font-weight: 700;
-      letter-spacing: 0.02em;
       color: var(--fg);
+      font-size: clamp(32px, 6vw, 72px);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      line-height: 1;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
-    /* Wetteranzeige oben links */
+    /*
+     * Wetteranzeige oben links
+     */
+
     .weather {
       position: fixed;
       top: 24px;
@@ -60,7 +97,10 @@
       -webkit-user-select: none;
     }
 
-    /* Wettersymbol */
+    /*
+     * Wettersymbol
+     */
+
     .weather-icon {
       display: flex;
       align-items: center;
@@ -73,7 +113,10 @@
       line-height: 1;
     }
 
-    /* Wettertext */
+    /*
+     * Textbereich der Wetteranzeige
+     */
+
     .weather-content {
       display: flex;
       flex-direction: column;
@@ -85,7 +128,7 @@
       align-items: baseline;
       gap: 7px;
 
-      font-weight: 500;
+      font-weight: 400;
       white-space: nowrap;
     }
 
@@ -93,19 +136,30 @@
       font-weight: 600;
     }
 
+    /*
+     * Ort bewusst kleiner und transparenter
+     */
+
     .weather-location {
       color: var(--weather-secondary);
       font-size: 0.75em;
       font-weight: 400;
     }
 
-    /* Fehlermeldung möglichst dezent */
+    /*
+     * Dezente Fehlermeldung
+     */
+
     .weather-error {
       color: var(--weather-secondary);
       font-size: 14px;
+      font-weight: 400;
     }
 
-    /* Mobile Darstellung */
+    /*
+     * Anpassung für Smartphones und kleine Tablets
+     */
+
     @media (max-width: 600px) {
       .weather {
         top: 16px;
@@ -116,11 +170,27 @@
       .weather-icon {
         width: 30px;
         height: 30px;
+
         font-size: 24px;
       }
 
+      /*
+       * Auf kleinen Displays wird die Ortsangabe ausgeblendet.
+       * Temperatur und Wetterzustand bleiben sichtbar.
+       */
+
       .weather-location {
         display: none;
+      }
+    }
+
+    /*
+     * Bewegungsreduktion entsprechend der Systemeinstellung
+     */
+
+    @media (prefers-reduced-motion: reduce) {
+      body {
+        transition: none;
       }
     }
   </style>
@@ -135,13 +205,20 @@
     aria-live="polite"
     aria-label="Aktuelles Wetter in Dohna"
   >
-    <div class="weather-icon" id="weatherIcon" aria-hidden="true">
+    <div
+      class="weather-icon"
+      id="weatherIcon"
+      aria-hidden="true"
+    >
       ·
     </div>
 
     <div class="weather-content">
       <div class="weather-main">
-        <span class="weather-temperature" id="weatherTemperature">
+        <span
+          class="weather-temperature"
+          id="weatherTemperature"
+        >
           Wetter wird geladen
         </span>
 
@@ -162,22 +239,61 @@
       /*
        * Fester Standort: 01809 Dohna
        *
-       * Für andere Orte müssen latitude und longitude angepasst werden.
+       * Der Browser fragt nicht nach dem Standort.
        */
+
       const latitude = 50.956;
       const longitude = 13.858;
 
-      const weatherElement = document.getElementById("weather");
-      const iconElement = document.getElementById("weatherIcon");
+      const weatherElement =
+        document.getElementById("weather");
+
+      const iconElement =
+        document.getElementById("weatherIcon");
+
       const temperatureElement =
         document.getElementById("weatherTemperature");
+
       const descriptionElement =
         document.getElementById("weatherDescription");
 
       /*
-       * Zuordnung der WMO-Wettercodes zu deutschen Beschreibungen
-       * und passenden Symbolen.
+       * Hintergrund anhand der Ortszeit anpassen.
+       *
+       * Tag:     07:00 bis 17:59 Uhr
+       * Abend:   18:00 bis 21:59 Uhr
+       * Nacht:   22:00 bis 06:59 Uhr
        */
+
+      function updateBackgroundByTime() {
+        const hour = Number(
+          new Intl.DateTimeFormat("de-DE", {
+            timeZone: "Europe/Berlin",
+            hour: "2-digit",
+            hour12: false
+          }).format(new Date())
+        );
+
+        document.body.classList.remove(
+          "day",
+          "evening",
+          "night"
+        );
+
+        if (hour >= 7 && hour < 18) {
+          document.body.classList.add("day");
+        } else if (hour >= 18 && hour < 22) {
+          document.body.classList.add("evening");
+        } else {
+          document.body.classList.add("night");
+        }
+      }
+
+      /*
+       * Wettercodes in deutsche Beschreibungen und
+       * passende Symbole übersetzen.
+       */
+
       function getWeatherInformation(code, isDay) {
         const day = isDay === 1;
 
@@ -216,7 +332,11 @@
           };
         }
 
-        if (code === 51 || code === 53 || code === 55) {
+        if (
+          code === 51 ||
+          code === 53 ||
+          code === 55
+        ) {
           return {
             icon: "🌦️",
             description: "Nieselregen"
@@ -230,7 +350,11 @@
           };
         }
 
-        if (code === 61 || code === 63 || code === 65) {
+        if (
+          code === 61 ||
+          code === 63 ||
+          code === 65
+        ) {
           return {
             icon: "🌧️",
             description: "Regen"
@@ -244,7 +368,11 @@
           };
         }
 
-        if (code === 71 || code === 73 || code === 75) {
+        if (
+          code === 71 ||
+          code === 73 ||
+          code === 75
+        ) {
           return {
             icon: "🌨️",
             description: "Schneefall"
@@ -258,7 +386,11 @@
           };
         }
 
-        if (code === 80 || code === 81 || code === 82) {
+        if (
+          code === 80 ||
+          code === 81 ||
+          code === 82
+        ) {
           return {
             icon: "🌦️",
             description: "Regenschauer"
@@ -292,6 +424,10 @@
         };
       }
 
+      /*
+       * Aktuelles Wetter laden
+       */
+
       async function loadWeather() {
         const apiUrl =
           "https://api.open-meteo.com/v1/forecast" +
@@ -306,7 +442,8 @@
 
           if (!response.ok) {
             throw new Error(
-              "Wetterdienst antwortet mit Status " + response.status
+              "Wetterdienst antwortet mit Status " +
+              response.status
             );
           }
 
@@ -317,18 +454,31 @@
             typeof data.current.temperature_2m !== "number" ||
             typeof data.current.weather_code !== "number"
           ) {
-            throw new Error("Unvollständige Wetterdaten");
+            throw new Error(
+              "Der Wetterdienst hat unvollständige Daten geliefert."
+            );
           }
 
-          const temperature = Math.round(data.current.temperature_2m);
-          const weather = getWeatherInformation(
-            data.current.weather_code,
-            data.current.is_day
-          );
+          const temperature =
+            Math.round(data.current.temperature_2m);
+
+          const weather =
+            getWeatherInformation(
+              data.current.weather_code,
+              data.current.is_day
+            );
 
           iconElement.textContent = weather.icon;
-          temperatureElement.textContent = temperature + " °C";
-          descriptionElement.textContent = weather.description;
+
+          temperatureElement.textContent =
+            temperature + " °C";
+
+          descriptionElement.textContent =
+            weather.description;
+
+          temperatureElement.classList.remove(
+            "weather-error"
+          );
 
           weatherElement.setAttribute(
             "aria-label",
@@ -338,25 +488,55 @@
               weather.description
           );
         } catch (error) {
-          console.error("Wetter konnte nicht geladen werden:", error);
+          console.error(
+            "Wetter konnte nicht geladen werden:",
+            error
+          );
 
           iconElement.textContent = "◦";
-          temperatureElement.textContent = "Wetter nicht verfügbar";
-          temperatureElement.classList.add("weather-error");
+
+          temperatureElement.textContent =
+            "Wetter nicht verfügbar";
+
+          temperatureElement.classList.add(
+            "weather-error"
+          );
+
           descriptionElement.textContent = "";
+
+          weatherElement.setAttribute(
+            "aria-label",
+            "Wetterdaten sind momentan nicht verfügbar"
+          );
         }
       }
 
       /*
-       * Wetter beim Öffnen der Seite laden.
+       * Hintergrund und Wetter beim Öffnen laden
        */
+
+      updateBackgroundByTime();
       loadWeather();
 
       /*
-       * Wetter alle 15 Minuten aktualisieren,
-       * solange die Seite geöffnet bleibt.
+       * Hintergrund regelmäßig prüfen.
+       * Dadurch wechselt die Farbe automatisch,
+       * wenn die Seite längere Zeit geöffnet bleibt.
        */
-      window.setInterval(loadWeather, 15 * 60 * 1000);
+
+      window.setInterval(
+        updateBackgroundByTime,
+        60 * 1000
+      );
+
+      /*
+       * Wetter alle 15 Minuten aktualisieren.
+       */
+
+      window.setInterval(
+        loadWeather,
+        15 * 60 * 1000
+      );
     })();
   </script>
 </body>
