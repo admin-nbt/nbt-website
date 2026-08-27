@@ -12,13 +12,10 @@
       /* Blaugrau (anpassbar) */
       --bg: #5f7d8c;
       --fg: #ffffff;
-
-      /* Sonne */
-      --sun-stroke: rgba(255,255,255,0.95);
-      --sun-fill: rgba(255,255,255,0.00);
     }
 
-    html, body {
+    html,
+    body {
       height: 100%;
       margin: 0;
     }
@@ -27,171 +24,22 @@
       background-color: var(--bg);
       color: var(--fg);
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
     }
 
-    .badge {
+    .logo {
       font-size: clamp(32px, 6vw, 72px);
       font-weight: 700;
       letter-spacing: 0.02em;
-      padding: 18px 28px;
-      border-radius: 14px;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.25);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-    }
-
-    /* ---------- Sonne oben rechts (touchfähig) ---------- */
-    .sun-badge{
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      width: 135px;   /* insgesamt kleiner */
-      height: auto;
-      z-index: 9999;
-
-      /* Button optisch neutral */
-      background: transparent;
-      border: 0;
-      padding: 0;
-      margin: 0;
-      cursor: pointer;
-
-      opacity: 0.96;
-      filter: drop-shadow(0 6px 18px rgba(0,0,0,0.14));
-
-      /* Basis-Transform (wichtig: wird auch in Animation verwendet) */
-      --base-rot: 0.4deg;
-      transform: rotate(var(--base-rot));
-      transform-origin: top right;
-
-      /* Touch/UI */
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-      user-select: none;
-      outline: none;
-    }
-
-    .sun-badge:focus-visible{
-      outline: 2px solid rgba(255,255,255,0.40);
-      outline-offset: 6px;
-      border-radius: 12px;
-    }
-
-    .sun-svg{
-      width: 100%;
-      height: auto;
-      display: block;
-    }
-
-    /* Symmetrische Strahlen, aber "gezeichnet" durch leichte Segmentierung */
-    .sun-core{
-      fill: var(--sun-fill);
-      stroke: var(--sun-stroke);
-      stroke-width: 3.0;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-
-      /* dezente Stift-Note */
-      stroke-dasharray: 1 0.22;
-      stroke-dashoffset: 0.10;
-    }
-
-    .sun-rays{
-      stroke: var(--sun-stroke);
-      stroke-width: 3.0;
-      stroke-linecap: round;
-
-      /* dezente Stift-Note */
-      stroke-dasharray: 1 0.22;
-      stroke-dashoffset: 0.10;
-    }
-
-    /* Mini-Feedback während gedrückt */
-    .sun-badge:active{
-      filter: drop-shadow(0 10px 24px rgba(0,0,0,0.20));
-      transform: rotate(var(--base-rot)) scale(1.03);
-      opacity: 1;
-    }
-
-    /* ---------- Puls-Animation (einmaliges „Pumpen“) ---------- */
-    @keyframes sunPulse {
-      0%   { transform: rotate(var(--base-rot)) scale(1); }
-      35%  { transform: rotate(var(--base-rot)) scale(1.08); }
-      100% { transform: rotate(var(--base-rot)) scale(1); }
-    }
-
-    .sun-badge.pulse{
-      animation: sunPulse 420ms ease-out;
-    }
-
-    /* Mobile */
-    @media (max-width: 600px){
-      .sun-badge{
-        width: 110px;
-        top: 14px;
-        right: 14px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce){
-      .sun-badge,
-      .sun-badge.pulse{
-        animation: none !important;
-      }
+      color: var(--fg);
     }
   </style>
 </head>
 
 <body>
-  <div class="badge">nbt.de</div>
-
-  <!-- Sonne-Overlay oben rechts (symmetrische Strahlen, kleiner Kern, längere Strahlen) -->
-  <button type="button" class="sun-badge" id="sunBadge" aria-label="Sonne">
-    <svg class="sun-svg" viewBox="0 0 200 200" role="img" aria-hidden="true">
-      <!-- Strahlen als ein Pfad: exakt symmetrisch (12 Strahlen) -->
-      <!-- Zentrum (100,100), Kreisradius 32, Strahlen: innen 50, außen 86 -->
-      <path class="sun-rays" d="
-        M100 14 L100 50
-        M143 22 L125 52
-        M178 57 L148 75
-        M186 100 L150 100
-        M178 143 L148 125
-        M143 178 L125 148
-        M100 186 L100 150
-        M57 178 L75 148
-        M22 143 L52 125
-        M14 100 L50 100
-        M22 57 L52 75
-        M57 22 L75 52
-      " />
-
-      <!-- Kreis der Sonne (kleiner) -->
-      <circle class="sun-core" cx="100" cy="100" r="32" />
-    </svg>
-  </button>
-
-  <script>
-    (function () {
-      const badge = document.getElementById('sunBadge');
-      if (!badge) return;
-
-      const pulse = () => {
-        badge.classList.remove('pulse');
-        void badge.offsetWidth; // Reflow
-        badge.classList.add('pulse');
-      };
-
-      badge.addEventListener('click', pulse);
-      badge.addEventListener('touchend', function (e) {
-        e.preventDefault();
-        pulse();
-      }, { passive: false });
-    })();
-  </script>
+  <div class="logo">nbt.de</div>
 </body>
 </html>
