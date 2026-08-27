@@ -8,10 +8,12 @@
   <meta name="description" content="nbt.de" />
 
   <style>
-    :root{
-      /* Blaugrau (anpassbar) */
+    :root {
+      /* Farben */
       --bg: #5f7d8c;
       --fg: #ffffff;
+      --weather-fg: rgba(255, 255, 255, 0.92);
+      --weather-secondary: rgba(255, 255, 255, 0.72);
     }
 
     html,
@@ -28,18 +30,334 @@
       display: flex;
       align-items: center;
       justify-content: center;
+
+      overflow: hidden;
     }
 
+    /* Mittiger Schriftzug */
     .logo {
       font-size: clamp(32px, 6vw, 72px);
       font-weight: 700;
       letter-spacing: 0.02em;
       color: var(--fg);
     }
+
+    /* Wetteranzeige oben links */
+    .weather {
+      position: fixed;
+      top: 24px;
+      left: 28px;
+
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      color: var(--weather-fg);
+      font-size: clamp(15px, 1.5vw, 20px);
+      line-height: 1.2;
+
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Wettersymbol */
+    .weather-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 34px;
+      height: 34px;
+
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    /* Wettertext */
+    .weather-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .weather-main {
+      display: flex;
+      align-items: baseline;
+      gap: 7px;
+
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .weather-temperature {
+      font-weight: 600;
+    }
+
+    .weather-location {
+      color: var(--weather-secondary);
+      font-size: 0.75em;
+      font-weight: 400;
+    }
+
+    /* Fehlermeldung möglichst dezent */
+    .weather-error {
+      color: var(--weather-secondary);
+      font-size: 14px;
+    }
+
+    /* Mobile Darstellung */
+    @media (max-width: 600px) {
+      .weather {
+        top: 16px;
+        left: 16px;
+        gap: 8px;
+      }
+
+      .weather-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 24px;
+      }
+
+      .weather-location {
+        display: none;
+      }
+    }
   </style>
 </head>
 
 <body>
+  <!-- Wetteranzeige für 01809 Dohna -->
+  <div
+    class="weather"
+    id="weather"
+    role="status"
+    aria-live="polite"
+    aria-label="Aktuelles Wetter in Dohna"
+  >
+    <div class="weather-icon" id="weatherIcon" aria-hidden="true">
+      ·
+    </div>
+
+    <div class="weather-content">
+      <div class="weather-main">
+        <span class="weather-temperature" id="weatherTemperature">
+          Wetter wird geladen
+        </span>
+
+        <span id="weatherDescription"></span>
+      </div>
+
+      <div class="weather-location">
+        01809 Dohna
+      </div>
+    </div>
+  </div>
+
+  <!-- Mittiger Schriftzug -->
   <div class="logo">nbt.de</div>
+
+  <script>
+    (function () {
+      /*
+       * Fester Standort: 01809 Dohna
+       *
+       * Für andere Orte müssen latitude und longitude angepasst werden.
+       */
+      const latitude = 50.956;
+      const longitude = 13.858;
+
+      const weatherElement = document.getElementById("weather");
+      const iconElement = document.getElementById("weatherIcon");
+      const temperatureElement =
+        document.getElementById("weatherTemperature");
+      const descriptionElement =
+        document.getElementById("weatherDescription");
+
+      /*
+       * Zuordnung der WMO-Wettercodes zu deutschen Beschreibungen
+       * und passenden Symbolen.
+       */
+      function getWeatherInformation(code, isDay) {
+        const day = isDay === 1;
+
+        if (code === 0) {
+          return {
+            icon: day ? "☀️" : "🌙",
+            description: "Klar"
+          };
+        }
+
+        if (code === 1) {
+          return {
+            icon: day ? "🌤️" : "🌙",
+            description: "Überwiegend klar"
+          };
+        }
+
+        if (code === 2) {
+          return {
+            icon: day ? "⛅" : "☁️",
+            description: "Teilweise bewölkt"
+          };
+        }
+
+        if (code === 3) {
+          return {
+            icon: "☁️",
+            description: "Bewölkt"
+          };
+        }
+
+        if (code === 45 || code === 48) {
+          return {
+            icon: "🌫️",
+            description: "Neblig"
+          };
+        }
+
+        if (code === 51 || code === 53 || code === 55) {
+          return {
+            icon: "🌦️",
+            description: "Nieselregen"
+          };
+        }
+
+        if (code === 56 || code === 57) {
+          return {
+            icon: "🌧️",
+            description: "Gefrierender Nieselregen"
+          };
+        }
+
+        if (code === 61 || code === 63 || code === 65) {
+          return {
+            icon: "🌧️",
+            description: "Regen"
+          };
+        }
+
+        if (code === 66 || code === 67) {
+          return {
+            icon: "🌧️",
+            description: "Gefrierender Regen"
+          };
+        }
+
+        if (code === 71 || code === 73 || code === 75) {
+          return {
+            icon: "🌨️",
+            description: "Schneefall"
+          };
+        }
+
+        if (code === 77) {
+          return {
+            icon: "🌨️",
+            description: "Schneegriesel"
+          };
+        }
+
+        if (code === 80 || code === 81 || code === 82) {
+          return {
+            icon: "🌦️",
+            description: "Regenschauer"
+          };
+        }
+
+        if (code === 85 || code === 86) {
+          return {
+            icon: "🌨️",
+            description: "Schneeschauer"
+          };
+        }
+
+        if (code === 95) {
+          return {
+            icon: "⛈️",
+            description: "Gewitter"
+          };
+        }
+
+        if (code === 96 || code === 99) {
+          return {
+            icon: "⛈️",
+            description: "Gewitter mit Hagel"
+          };
+        }
+
+        return {
+          icon: "🌡️",
+          description: "Aktuelles Wetter"
+        };
+      }
+
+      async function loadWeather() {
+        const apiUrl =
+          "https://api.open-meteo.com/v1/forecast" +
+          "?latitude=" + latitude +
+          "&longitude=" + longitude +
+          "&current=temperature_2m,weather_code,is_day" +
+          "&temperature_unit=celsius" +
+          "&timezone=Europe%2FBerlin";
+
+        try {
+          const response = await fetch(apiUrl);
+
+          if (!response.ok) {
+            throw new Error(
+              "Wetterdienst antwortet mit Status " + response.status
+            );
+          }
+
+          const data = await response.json();
+
+          if (
+            !data.current ||
+            typeof data.current.temperature_2m !== "number" ||
+            typeof data.current.weather_code !== "number"
+          ) {
+            throw new Error("Unvollständige Wetterdaten");
+          }
+
+          const temperature = Math.round(data.current.temperature_2m);
+          const weather = getWeatherInformation(
+            data.current.weather_code,
+            data.current.is_day
+          );
+
+          iconElement.textContent = weather.icon;
+          temperatureElement.textContent = temperature + " °C";
+          descriptionElement.textContent = weather.description;
+
+          weatherElement.setAttribute(
+            "aria-label",
+            "Aktuelles Wetter in Dohna: " +
+              temperature +
+              " Grad Celsius, " +
+              weather.description
+          );
+        } catch (error) {
+          console.error("Wetter konnte nicht geladen werden:", error);
+
+          iconElement.textContent = "◦";
+          temperatureElement.textContent = "Wetter nicht verfügbar";
+          temperatureElement.classList.add("weather-error");
+          descriptionElement.textContent = "";
+        }
+      }
+
+      /*
+       * Wetter beim Öffnen der Seite laden.
+       */
+      loadWeather();
+
+      /*
+       * Wetter alle 15 Minuten aktualisieren,
+       * solange die Seite geöffnet bleibt.
+       */
+      window.setInterval(loadWeather, 15 * 60 * 1000);
+    })();
+  </script>
 </body>
 </html>
